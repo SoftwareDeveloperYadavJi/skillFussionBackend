@@ -20,7 +20,7 @@ model User {
   city               String?
   state              String?
   country            String?
-  dob                DateTime?
+  dob                String?
   phone              String?
   isVerified         Boolean         @default(false)
   isDeleted          Boolean         @default(false)

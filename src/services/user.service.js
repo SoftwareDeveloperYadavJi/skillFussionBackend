@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+
 export const handleGoogleAuth = async (user) => {
     try {
         let existingUser = await prisma.user.findUnique({

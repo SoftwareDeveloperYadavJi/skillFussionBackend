@@ -4,6 +4,7 @@ import * as userController from "../controllers/user.controller.js";
 
 const router = express.Router();
 
+
 router.get("/auth/google", passport.authenticate("google", {
     scope: [
         "https://www.googleapis.com/auth/userinfo.profile",
@@ -20,6 +21,11 @@ router.get(
     userController.googleAuth
 );
 
-router.get("/create-meeting", userController.createMeeting);
+
+
+
+
+router.post("/complete-profile/:id", userController.completeProfile);
+router.get("/create-meeting",  userController.createMeeting);
 
 export default router;

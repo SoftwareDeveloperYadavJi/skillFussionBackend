@@ -1,4 +1,8 @@
 import * as userService from "../services/user.service.js";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+
 
 export const googleAuth = async (req, res) => {
     try {
@@ -21,3 +25,32 @@ export const createMeeting = async (req, res) => {
         res.status(500).send("Error creating Google Meet.");
     }
 };
+
+export const completeProfile = async (req, res)=>{
+    try {
+        const userId = req.params.id;
+        const { mobileNumber, gender, city, state, country, dob, phone, language, preferredLanguage } = req.body;
+        
+        const user = await prisma.user.update({
+            where: { id: userId },
+            data: {
+                mobileNumber,
+                gender,
+                city,
+                state,
+                country,
+                dob,
+                phone,
+                language,
+                preferredLanguage,
+            },
+        });
+        res.status(200).json({ message: "Profile updated successfully." });
+
+    } catch (error) {
+
+        console.error("Error updating profile in Controller:", error);
+        res.status(500).json({ error: "An error occurred while updating the profile" });
+        
+    }
+}
