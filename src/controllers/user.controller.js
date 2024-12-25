@@ -21,4 +21,3 @@ export const createMeeting = async (req, res) => {
         res.status(500).send("Error creating Google Meet.");
     }
 };
-

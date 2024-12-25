@@ -10,11 +10,11 @@ passport.use(
             clientID: process.env.GOOGLE_CLIENT_ID,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET,
             callbackURL: process.env.GOOGLE_CALLBACK_URL,
+            passReqToCallback: true, // Ensure req is passed
         },
-        async (accessToken, refreshToken, profile, done) => {
+        async (req, accessToken, refreshToken, profile, done) => {
             try {
                 let user = await prisma.user.findUnique({ where: { googleId: profile.id } });
-
                 if (!user) {
                     user = await prisma.user.create({
                         data: {
@@ -22,11 +22,18 @@ passport.use(
                             email: profile.emails[0].value,
                             name: profile.displayName,
                             avatar: profile.photos[0].value,
+                            accessToken: accessToken, // Store access token
+                            refreshToken: refreshToken, // Store refresh token
                         },
+                    });
+                } else {
+                    // Update tokens if user exists
+                    user = await prisma.user.update({
+                        where: { googleId: profile.id },
+                        data: { accessToken, refreshToken },
                     });
                 }
 
-                user = { ...user, accessToken, refreshToken };
                 done(null, user);
             } catch (error) {
                 done(error, null);
@@ -34,6 +41,7 @@ passport.use(
         }
     )
 );
+
 
 passport.serializeUser((user, done) => {
     done(null, user.id);

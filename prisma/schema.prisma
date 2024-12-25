@@ -27,6 +27,7 @@ model User {
   language           String?
   preferredLanguage  String?
   refreshToken       String?
+  accessToken        String?
   
   // Relationships
   sessions           Session[]       @relation("UserSessions")

@@ -28,6 +28,7 @@ export const handleGoogleAuth = async (user) => {
 
 export const createGoogleMeeting = async (user) => {
     const { accessToken, refreshToken } = user;
+    
 
     const oauth2Client = new google.auth.OAuth2(
         process.env.GOOGLE_CLIENT_ID,
