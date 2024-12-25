@@ -27,9 +27,10 @@ export const handleGoogleAuth = async (user) => {
     }
 };
 
+
+
 export const createGoogleMeeting = async (user) => {
     const { accessToken, refreshToken } = user;
-    
 
     const oauth2Client = new google.auth.OAuth2(
         process.env.GOOGLE_CLIENT_ID,
@@ -52,6 +53,11 @@ export const createGoogleMeeting = async (user) => {
             dateTime: new Date(new Date().getTime() + 30 * 60000).toISOString(),
             timeZone: "America/Los_Angeles",
         },
+        // attendees: attendeesEmails.map(email => ({ email })), // Add attendees
+        attendees: [
+            { email: "gargpranjal343@gmail.com" },
+            { email: "panchalkalu634@gmail.com" },
+        ],
         conferenceData: {
             createRequest: {
                 requestId: `meet-${Date.now()}`,
@@ -68,3 +74,4 @@ export const createGoogleMeeting = async (user) => {
 
     return response.data.htmlLink;
 };
+
