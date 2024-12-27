@@ -2,6 +2,7 @@ import express from "express";
 import session from "express-session";
 import passport from "passport";
 import userRoutes from "../routes/user.routes.js";
+import connectionRoutes from "../routes/connection.routes.js";
 import "./auth.js"; // Initialize passport
 
 const app = express();
@@ -28,5 +29,6 @@ app.use(passport.session());
 
 // Routes
 app.use("/", userRoutes);
+app.use("/api/connection", connectionRoutes);
 
 export default app;

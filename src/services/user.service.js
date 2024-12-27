@@ -3,7 +3,6 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-
 export const handleGoogleAuth = async (user) => {
     try {
         let existingUser = await prisma.user.findUnique({
@@ -55,8 +54,8 @@ export const createGoogleMeeting = async (user) => {
         },
         // attendees: attendeesEmails.map(email => ({ email })), // Add attendees
         attendees: [
-            { email: "gargpranjal343@gmail.com" },
-            { email: "panchalkalu634@gmail.com" },
+            { email: "gargpranjal343@gmail.com", optional: true },
+            { email: "panchalkalu634@gmail.com" , optional: true},
         ],
         conferenceData: {
             createRequest: {

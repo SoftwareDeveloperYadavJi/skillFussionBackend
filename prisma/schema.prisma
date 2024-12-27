@@ -13,6 +13,7 @@ model User {
   email              String          @unique
   name               String
   avatar             String
+  about              String?
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
   mobileNumber       String?
@@ -26,9 +27,9 @@ model User {
   isDeleted          Boolean         @default(false)
   language           String?
   preferredLanguage  String?
-  refreshToken       String?
+  refreshToken       String?         
   accessToken        String?
-  
+
   // Relationships
   sessions           Session[]       @relation("UserSessions")
   reviews            Review[]        @relation("UserReviews")
@@ -36,13 +37,23 @@ model User {
   socialMedia        SocialMedia[]   @relation("UserSocialMedia")
   skillExchanges     SkillExchange[] @relation("UserSkillExchange")
   meetings           Meeting[]       @relation("UserMeetings")
+  
+  // Connection relationships
+  connections        UserConnection[] @relation("UserToConnection")
+  connectedTo        UserConnection[] @relation("ConnectionToUser")
+  
+  // Connection request relationships
+  sentRequests       UserConnectionRequest[] @relation("SentConnectionRequests")
+  receivedRequests   UserConnectionRequest[] @relation("ReceivedConnectionRequests")
 }
 
 model SocialMedia {
   id                 String          @id @default(cuid())
-  userId             String
-  platform           String
-  url                String
+  userId             String          @unique
+  github             String?
+  linkedin           String?
+  twitter            String?
+  website            String?
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
 
@@ -54,7 +65,7 @@ model Review {
   id                 String          @id @default(cuid())
   userId             String
   review             String
-  description        String
+  description        String?
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
 
@@ -64,9 +75,12 @@ model Review {
 
 model Education {
   id                 String          @id @default(cuid())
-  userId             String
+  userId             String           
   institute          String
-  degree             String
+  degree             String?
+  fieldOfStudy       String?
+  startDate          DateTime
+  endDate            DateTime?
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
 
@@ -88,7 +102,7 @@ model Session {
 
 model SkillExchange {
   id                 String          @id @default(cuid())
-  userId             String
+  userId             String          @unique
   offeredSkill       String
   requestedSkill     String
   createdAt          DateTime        @default(now())
@@ -111,3 +125,29 @@ model Meeting {
   // Relationships
   user               User            @relation("UserMeetings", fields: [userId], references: [id], onDelete: Cascade)
 }
+
+model UserConnection {
+  id           String   @id @default(cuid())
+  userId       String
+  connectionId String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Fixed relationships with distinct names
+  user        User     @relation("UserToConnection", fields: [userId], references: [id], onDelete: Cascade)
+  connection  User     @relation("ConnectionToUser", fields: [connectionId], references: [id], onDelete: Cascade)
+}
+
+model UserConnectionRequest {
+  id                 String          @id @default(cuid())
+  userId             String
+  requestedUserId    String
+  status             String          @default("pending")
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  // Fixed relationships with distinct names
+  sender             User            @relation("SentConnectionRequests", fields: [userId], references: [id], onDelete: Cascade)
+  receiver           User            @relation("ReceivedConnectionRequests", fields: [requestedUserId], references: [id], onDelete: Cascade)
+}
+
