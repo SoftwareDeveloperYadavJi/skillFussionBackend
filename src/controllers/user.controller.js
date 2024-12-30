@@ -7,10 +7,20 @@ const prisma = new PrismaClient();
 export const googleAuth = async (req, res) => {
     try {
         const user = await userService.handleGoogleAuth(req.user);
-        res.redirect("/create-meeting");
+        // res.redirect("/create-meeting");
+        res.redirect('http://localhost:8080/dashboard'); // Replace with your frontend route
     } catch (error) {
         console.error("Error in Google Auth Controller:", error);
         res.status(500).send("Authentication failed.");
+    }
+};
+
+export const checkLogin = async (req, res) => {
+    
+    if (req.isAuthenticated()) { // Assuming `passport` is used
+        res.status(200).json({ authenticated: true });
+    } else {
+        res.status(401).json({ authenticated: false });
     }
 };
 
@@ -31,8 +41,11 @@ export const completeProfile = async (req, res)=>{
        
         // const { id } = req.user? : "cm53ojiix0000ffmszuq27s93";
         const id  = "cm53ojiix0000ffmszuq27s93";
-
+       
         const { mobileNumber, about, gender, city, state, country, dob, phone, language, preferredLanguage } = req.body;
+        if (!mobileNumber || !about || !gender || !city || !state   || !phone || !language || !preferredLanguage) {
+            return res.status(400).json({ error: "Please fill all the fields" });
+        }
         
         const user = await prisma.user.update({
             where: { id: id },
@@ -64,7 +77,6 @@ export const completeProfile = async (req, res)=>{
 export const getUserPorfile = async (req, res)=>{
     try {
         // const { id } = req.user;
-        console.log("hello")
         const id = "cm53ojiix0000ffmszuq27s93";
         const user = await prisma.user.findUnique({
             where: { id: id },
@@ -116,6 +128,8 @@ export const updateSocialMediaLinks = async (req, res) => {
 };
 
 
+
+
 // get user social media links
 export const getSocialMediaLinks = async (req, res) => {
     const userId = "cm53ojiix0000ffmszuq27s93"; // Replace this with dynamic userId (e.g., from req.user)
@@ -131,6 +145,10 @@ export const getSocialMediaLinks = async (req, res) => {
         });
     }
 };
+
+
+
+
 
 
 // update user education
@@ -186,6 +204,7 @@ export const getEducation = async (req, res) => {
 
 // Update user skill exchanges
 export const updateSkillExchanges = async (req, res) => {
+    console.log("req.body", req.body);
     const { userId, offeredSkill, requestedSkill } = req.body;
     try {
         // Check if userId exists
@@ -223,6 +242,20 @@ export const updateSkillExchanges = async (req, res) => {
     }
 };
 
+// Get user skill exchanges
+export const getSkillExchanges = async (req, res) => {
+    const { userId } = "cm53ojiix0000ffmszuq27s93"; // Replace this with dynamic userId (e.g., from req.user)
+    try {
+        const skillExchanges = await prisma.skillExchange.findMany({
+            where: { userId },
+        });
+        res.status(200).json(skillExchanges);
+    } catch (error) {
+        console.error('Error getting skill exchanges:', error);
+        res.status(500).json({ error: 'An error occurred while getting skill exchanges.' });
+    }
+}
+
 
 // get all users to show in the list in user slect only name,email, avatar 
 export const getAllUsers = async (req, res) => {
@@ -243,6 +276,5 @@ export const getAllUsers = async (req, res) => {
         res.status(500).json({ error: 'An error occurred while getting users.' });
     }
 };
-
 
 

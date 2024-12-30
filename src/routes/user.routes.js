@@ -23,15 +23,20 @@ router.get(
 );
 
 
+
+
+
 // User Routers
+router.get("/api/check-login",isAuthenticated, userController.checkLogin);
 router.post("/api/complete-profile", userController.completeProfile);
 router.get("/create-meeting", isAuthenticated, userController.createMeeting);
-router.get("/api/user",isAuthenticated, userController.getUserPorfile);
+router.get("/api/user", userController.getUserPorfile);
 router.post("/api/update/socialmedia", userController.updateSocialMediaLinks);
 router.get("/api/user/socialmedia", userController.getSocialMediaLinks);
 router.post("/api/update/education", userController.updateEducation);
 router.get("/api/user/education", userController.getEducation);
 router.post("/api/update/skillexchange", userController.updateSkillExchanges);
+router.get("/api/user/skillexchange", userController.getSkillExchanges);
 // router.get("/api/user/potentialmatches", userController.getPotentialMatches);
 router.get("/api/users", userController.getAllUsers);
 

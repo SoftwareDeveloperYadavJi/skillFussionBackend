@@ -45,8 +45,37 @@ model User {
   // Connection request relationships
   sentRequests       UserConnectionRequest[] @relation("SentConnectionRequests")
   receivedRequests   UserConnectionRequest[] @relation("ReceivedConnectionRequests")
+
+  // Chat relationships
+  messagesSent       Message[]        @relation("SentMessages")
+  messagesReceived   Message[]        @relation("ReceivedMessages")
+  conversations      Conversation[]   @relation("UserConversations")
 }
 
+model Conversation {
+  id                 String          @id @default(cuid())
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  participants       User[]          @relation("UserConversations")
+
+  // Relationships
+  messages           Message[]       @relation("ConversationMessages")
+}
+
+model Message {
+  id                 String          @id @default(cuid())
+  content            String
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  senderId           String
+  receiverId         String
+  conversationId     String
+
+  // Relationships
+  sender             User            @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver           User            @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  conversation       Conversation    @relation("ConversationMessages", fields: [conversationId], references: [id], onDelete: Cascade)
+}
 model SocialMedia {
   id                 String          @id @default(cuid())
   userId             String          @unique
@@ -63,9 +92,9 @@ model SocialMedia {
 
 model Review {
   id                 String          @id @default(cuid())
+  rating             Int
   userId             String
-  review             String
-  description        String?
+  reviewDescription  String?
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
 
@@ -111,6 +140,9 @@ model SkillExchange {
   // Relationships
   user               User            @relation("UserSkillExchange", fields: [userId], references: [id], onDelete: Cascade)
 }
+
+
+
 
 model Meeting {
   id                 String          @id @default(cuid())
