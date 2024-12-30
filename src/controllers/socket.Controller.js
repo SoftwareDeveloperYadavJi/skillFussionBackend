@@ -7,7 +7,6 @@ export const setupSocketHandlers = (io, prisma) => {
 
         // Handle user connection with their ID
         socket.on("userconnected", async (userId) => {
-
             console.log("User connected to socket:", userId);
             connectedUsers.set(userId, socket.id);
             io.emit("user_status_change", { userId, status: "online" });
