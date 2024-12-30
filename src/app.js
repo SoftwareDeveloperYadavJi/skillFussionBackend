@@ -11,6 +11,7 @@ import userRouter from "./routes/user.routes.js";
 import connectionRouter from "./routes/connection.routes.js";
 import reviewRouter from "./routes/review.routes.js";
 import messageRouter from "./routes/message.routes.js";
+import "./utils/auth.js";
 
 
 dotenv.config();
