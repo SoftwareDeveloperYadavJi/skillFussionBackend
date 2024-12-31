@@ -18,9 +18,17 @@ router.get("/auth/google", passport.authenticate("google", {
 
 router.get(
     "/auth/google/callback",
-    passport.authenticate("google", { failureRedirect: "/" }),
-    userController.googleAuth
+    passport.authenticate("google", { session: false }),
+    (req, res) => {
+        const { token } = req.user; // Extract token from user object
+        if (!token) {
+            return res.redirect("http://localhost:8080/login?error=Token%20Missing");
+        }
+        res.redirect(`http://localhost:8080/dashboard?token=${token}`);
+    }
 );
+
+
 
 
 
@@ -28,16 +36,16 @@ router.get(
 
 // User Routers
 router.get("/api/check-login",isAuthenticated, userController.checkLogin);
-router.post("/api/complete-profile", userController.completeProfile);
+router.post("/api/complete-profile",isAuthenticated, userController.completeProfile);
 router.get("/create-meeting", isAuthenticated, userController.createMeeting);
-router.get("/api/user", userController.getUserPorfile);
-router.post("/api/update/socialmedia", userController.updateSocialMediaLinks);
-router.get("/api/user/socialmedia", userController.getSocialMediaLinks);
-router.post("/api/update/education", userController.updateEducation);
-router.get("/api/user/education", userController.getEducation);
-router.post("/api/update/skillexchange", userController.updateSkillExchanges);
-router.get("/api/user/skillexchange", userController.getSkillExchanges);
+router.get("/api/user",isAuthenticated, userController.getUserPorfile);
+router.post("/api/update/socialmedia",isAuthenticated, userController.updateSocialMediaLinks);
+router.get("/api/user/socialmedia", isAuthenticated,userController.getSocialMediaLinks);
+router.post("/api/update/education",isAuthenticated, userController.updateEducation);
+router.get("/api/user/education",isAuthenticated, userController.getEducation);
+router.post("/api/update/skillexchange", isAuthenticated ,userController.updateSkillExchanges);
+router.get("/api/user/skillexchange", isAuthenticated, userController.getSkillExchanges);
 // router.get("/api/user/potentialmatches", userController.getPotentialMatches);
-router.get("/api/users", userController.getAllUsers);
+router.get("/api/users",isAuthenticated, userController.getAllUsers);
 
 export default router;

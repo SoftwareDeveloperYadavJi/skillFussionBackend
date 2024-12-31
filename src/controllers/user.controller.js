@@ -39,8 +39,8 @@ export const createMeeting = async (req, res) => {
 export const completeProfile = async (req, res)=>{
     try {
        
-        // const { id } = req.user? : "cm53ojiix0000ffmszuq27s93";
-        const id  = "cm53ojiix0000ffmszuq27s93";
+        const { id } = req.user;
+        // const id  = "cm53ojiix0000ffmszuq27s93";
        
         const { mobileNumber, about, gender, city, state, country, dob, phone, language, preferredLanguage } = req.body;
         if (!mobileNumber || !about || !gender || !city || !state   || !phone || !language || !preferredLanguage) {
@@ -76,8 +76,9 @@ export const completeProfile = async (req, res)=>{
 // Get User Profile
 export const getUserPorfile = async (req, res)=>{
     try {
-        // const { id } = req.user;
-        const id = "cm53ojiix0000ffmszuq27s93";
+        console.log("req.user", req.user.id);
+        const { id } = req.user;
+        // const id = "cm53ojiix0000ffmszuq27s93";
         const user = await prisma.user.findUnique({
             where: { id: id },
             
@@ -92,13 +93,13 @@ export const getUserPorfile = async (req, res)=>{
 
 // update user social media links
 export const updateSocialMediaLinks = async (req, res) => {
-    const userId = "cm53ojiix0000ffmszuq27s93"; // Replace this with dynamic userId (e.g., from req.user)
+    const { id } = req.user; // Replace this with dynamic userId (e.g., from req.user)
     const { github, linkedin, twitter, website } = req.body;
 
     try {
         // Check if social media links exist for the user
         const existingSocialMedia = await prisma.socialMedia.findUnique({
-            where: { userId },
+            where: { userId: id },
         });
 
         let socialMedia;
@@ -132,10 +133,11 @@ export const updateSocialMediaLinks = async (req, res) => {
 
 // get user social media links
 export const getSocialMediaLinks = async (req, res) => {
-    const userId = "cm53ojiix0000ffmszuq27s93"; // Replace this with dynamic userId (e.g., from req.user)
+    const { id } = req.user; // Replace this with dynamic userId (e.g., from req.user)
+
     try {
         const socialMedia = await prisma.socialMedia.findUnique({
-            where: { userId },
+            where: { userId : id },
         });
         res.status(200).json(socialMedia);
     } catch (error) {
@@ -153,12 +155,13 @@ export const getSocialMediaLinks = async (req, res) => {
 
 // update user education
 export const updateEducation = async (req, res) => {
-    const { userId, educations } = req.body;
+    const { id } = req.user; // Replace this with dynamic userId (e.g., from req.user)
+    const { educations } = req.body;
 
     try {
         // Check if userId exists
         const user = await prisma.user.findUnique({
-            where: { id: userId },
+            where: { id },
         });
 
         if (!user) {
@@ -167,7 +170,7 @@ export const updateEducation = async (req, res) => {
 
         // Prepare the data for insertion
         const educationData = educations.map((education) => ({
-            userId,
+            userId: id,
             institute: education.institute,
             degree: education.degree,
             fieldOfStudy: education.fieldOfStudy,
@@ -190,10 +193,18 @@ export const updateEducation = async (req, res) => {
 
 // Get user education
 export const getEducation = async (req, res) => {
-    const { userId } = "cm53ojiix0000ffmszuq27s93"; // Replace this with dynamic userId (e.g., from req.user)
+
+    const { id } = req.user; // Replace this with dynamic userId (e.g., from req.user)
+    const user = await prisma.user.findUnique({
+        where: { id },
+    });
+    if(!user){
+        return res.status(404).json({ error: `User with id ${id} not found.` });
+    }
+    console.log("user", user);
     try {
         const education = await prisma.education.findMany({
-            where: { userId },
+            where: { userId: id },
         });
         res.status(200).json(education);
     } catch (error) {
@@ -205,46 +216,65 @@ export const getEducation = async (req, res) => {
 // Update user skill exchanges
 export const updateSkillExchanges = async (req, res) => {
     console.log("req.body", req.body);
-    const { userId, offeredSkill, requestedSkill } = req.body;
+    const { id } = req.user; // Dynamic userId from req.user
+    const { offeredSkill, requestedSkill } = req.body;
+
     try {
-        // Check if userId exists
+        // Validate user existence
         const user = await prisma.user.findUnique({
-            where: { id: userId },
+            where: { id },
         });
+
         if (!user) {
-            return res.status(404).json({ error: `User with id ${userId} not found.` });
+            return res.status(404).json({ error: `User with id ${id} not found.` });
         }
-        const  skillExchanges = await prisma.skillExchange.findUnique({
-            where: { userId },
+
+        // Check if a SkillExchange entry exists for the user
+        const skillExchange = await prisma.skillExchange.findUnique({
+            where: { userId: id }, // Ensure the unique field is userId
         });
-        if(skillExchanges){
-            const skillExchangeData = await prisma.skillExchange.update({
-                where: { userId },
+
+        let skillExchangeData;
+
+        if (skillExchange) {
+            // Update existing SkillExchange record
+            skillExchangeData = await prisma.skillExchange.update({
+                where: { userId: id }, // Match based on userId
                 data: {
                     offeredSkill,
-                    requestedSkill
+                    requestedSkill,
                 },
             });
-            res.status(201).json({ message: 'Skill exchanges updated successfully.' , skillExchangeData});
-        }else{
-            const skillExchangeData = await prisma.skillExchange.create({
+            return res.status(200).json({
+                message: "Skill exchanges updated successfully.",
+                skillExchangeData,
+            });
+        } else {
+            // Create a new SkillExchange record
+            skillExchangeData = await prisma.skillExchange.create({
                 data: {
-                    userId,
+                    userId: id,
                     offeredSkill,
-                    requestedSkill
+                    requestedSkill,
                 },
             });
-            res.status(201).json({ message: 'Skill exchanges added successfully.' , skillExchangeData});
+            return res.status(201).json({
+                message: "Skill exchanges added successfully.",
+                skillExchangeData,
+            });
         }
     } catch (error) {
-        console.error('Error inserting skill exchanges:', error);
-        res.status(500).json({ error: 'An error occurred while adding skill exchanges.' });
+        console.error("Error processing skill exchanges:", error);
+        res.status(500).json({
+            error: "An error occurred while processing skill exchanges.",
+        });
     }
 };
 
+
 // Get user skill exchanges
 export const getSkillExchanges = async (req, res) => {
-    const { userId } = "cm53ojiix0000ffmszuq27s93"; // Replace this with dynamic userId (e.g., from req.user)
+    const { id: userId } = req.user; // Replace this with dynamic userId (e.g., from req.user)
     try {
         const skillExchanges = await prisma.skillExchange.findMany({
             where: { userId },

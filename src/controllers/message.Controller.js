@@ -52,7 +52,7 @@ export const messageController = {
                         orderBy: {
                             createdAt: 'desc',
                         },
-                        take: 1,
+                        take:7,
                     },
                 },
             });

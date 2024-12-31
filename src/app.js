@@ -12,8 +12,6 @@ import connectionRouter from "./routes/connection.routes.js";
 import reviewRouter from "./routes/review.routes.js";
 import messageRouter from "./routes/message.routes.js";
 import "./utils/auth.js";
-
-
 dotenv.config();
 
 const app = express();
@@ -34,12 +32,14 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 // CORS
-app.use(
-    cors({
-        origin: "http://localhost:8080", // Replace with your frontend URL
-        credentials: true, // Allow cookies and credentials
-    })
-);
+
+app.use(cors());
+// app.use(
+//     cors({
+//         origin: "http://localhost:8080", // Replace with your frontend URL
+//         credentials: true, // Allow cookies and credentials
+//     })
+// );
 
 app.use((req, res, next) => {
     res.header("Access-Control-Allow-Origin", "http://localhost:8080");
