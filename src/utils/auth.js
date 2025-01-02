@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { PrismaClient } from "@prisma/client";
+import { sendEmail } from "../services/email.services.js";
 
 const prisma = new PrismaClient();
 
@@ -24,8 +25,12 @@ passport.use(
                             email: profile.emails[0].value,
                             name: profile.displayName,
                             avatar: profile.photos[0]?.value || null,
+                            accessToken : accessToken,
+                            refreshToken : refreshToken,
                         },
                     });
+                   
+
                 }
 
                 // Create a JWT token
@@ -33,7 +38,13 @@ passport.use(
                     { id: user.id, email: user.email }, // Payload
                     process.env.JWT_SECRET, // Secret key
                     { expiresIn: "1h" } // Token expiration
-                );
+                );  
+
+                // send email for only first time user 
+                const email = sendEmail(user.email, "Welcome to LearnSwap", "Welcome to LearnSwap", user.name, process.env.PLATFORM_URL, process.env.UNSUBSCRIBE_URL);
+                console.log(email);
+
+                
 
                 // Pass the token and user data
                 return done(null, { user, token });
