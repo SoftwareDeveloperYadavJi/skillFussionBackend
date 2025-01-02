@@ -248,13 +248,13 @@ export const getEducation = async (req, res) => {
 }
 
 // Update user skill exchanges
+
 export const updateSkillExchanges = async (req, res) => {
-    console.log("req.body", req.body);
     const { id } = req.user; // Dynamic userId from req.user
     const { offeredSkill, requestedSkill } = req.body;
 
     try {
-        // Validate user existence
+        // Check if the user exists
         const user = await prisma.user.findUnique({
             where: { id },
         });
@@ -263,40 +263,35 @@ export const updateSkillExchanges = async (req, res) => {
             return res.status(404).json({ error: `User with id ${id} not found.` });
         }
 
-        // Check if a SkillExchange entry exists for the user
-        const skillExchange = await prisma.skillExchange.findUnique({
-            where: { userId: id }, // Ensure the unique field is userId
+        // Use findFirst to find the first SkillExchange record for the user
+        let skillExchange = await prisma.skillExchange.findFirst({
+            where: { userId: id }, // Using findFirst instead of findUnique
         });
 
-        let skillExchangeData;
-
         if (skillExchange) {
-            // Update existing SkillExchange record
-            skillExchangeData = await prisma.skillExchange.update({
-                where: { userId: id }, // Match based on userId
+            // Update the existing skill exchange record using its unique id
+            skillExchange = await prisma.skillExchange.update({
+                where: { id: skillExchange.id },  // Use the unique id of the existing record
                 data: {
                     offeredSkill,
                     requestedSkill,
                 },
             });
-            return res.status(200).json({
-                message: "Skill exchanges updated successfully.",
-                skillExchangeData,
-            });
         } else {
-            // Create a new SkillExchange record
-            skillExchangeData = await prisma.skillExchange.create({
+            // Create a new skill exchange record
+            skillExchange = await prisma.skillExchange.create({
                 data: {
                     userId: id,
                     offeredSkill,
                     requestedSkill,
                 },
             });
-            return res.status(201).json({
-                message: "Skill exchanges added successfully.",
-                skillExchangeData,
-            });
         }
+
+        return res.status(200).json({
+            message: "Skill exchanges processed successfully.",
+            skillExchange,
+        });
     } catch (error) {
         console.error("Error processing skill exchanges:", error);
         res.status(500).json({
@@ -304,6 +299,9 @@ export const updateSkillExchanges = async (req, res) => {
         });
     }
 };
+
+
+
 
 
 // Get user skill exchanges
@@ -332,6 +330,12 @@ export const getAllUsers = async (req, res) => {
                 avatar: true,
                 city: true,
                 about: true,
+                role: true,
+                skillExchanges: {
+                    select: {
+                        offeredSkill: true,
+                    },
+                },
             },
         });
         res.status(200).json(users);
@@ -368,6 +372,108 @@ export const getMeetings = async (req, res) => {
     } catch (error) {
         console.error('Error getting meetings:', error);
         res.status(500).json({ error: 'An error occurred while fetching meetings.' });
+    }
+};
+
+
+export const  getUserId = async (req, res) => {
+    try {
+        const { id } = req.user;
+        res.status(200).json({ userId: id });
+    } catch (error) {
+        console.error('Error getting user id:', error);
+        res.status(500).json({ error: 'An error occurred while getting user id.' });
+    }
+};
+
+
+
+export const getConversionBetweenTwoUsers = async (req, res) => {
+    const { userId, otherUserId } = req.params;
+
+    try {
+        // Fetch conversation based on participants
+        const conversation = await prisma.conversation.findMany({
+            where: {
+                participants: {
+                    some: { id: userId },
+                    some: { id: otherUserId }
+                }
+            },
+            include: {
+                messages: {
+                    orderBy: {
+                        createdAt: 'asc'
+                    },
+                    select: {
+                        id: true,
+                        content: true,
+                        senderId: true,
+                        receiverId: true,
+                        createdAt: true
+                    }
+                },
+            },
+        });
+
+        if (conversation.length === 0) {
+            return res.status(404).json({ message: 'Conversation not found.' });
+        }
+
+        res.status(200).json(conversation[0].messages); // Return messages of the first conversation
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error.' });
+    }
+}
+
+
+export const sendNewMessage = async (req, res) => {
+    const { senderId, receiverId, content } = req.body;
+
+    if (!senderId || !receiverId || !content) {
+        return res.status(400).json({ message: 'Missing required fields.' });
+    }
+
+    try {
+        // Check if a conversation already exists between sender and receiver
+        let conversation = await prisma.conversation.findFirst({
+            where: {
+                participants: {
+                    some: { id: senderId },
+                    some: { id: receiverId }
+                }
+            }
+        });
+
+        // If no conversation exists, create a new conversation
+        if (!conversation) {
+            conversation = await prisma.conversation.create({
+                data: {
+                    participants: {
+                        connect: [
+                            { id: senderId },
+                            { id: receiverId }
+                        ]
+                    }
+                }
+            });
+        }
+
+        // Create the message in the conversation
+        const newMessage = await prisma.message.create({
+            data: {
+                content,
+                senderId,
+                receiverId,
+                conversationId: conversation.id,
+            }
+        });
+
+        res.status(201).json(newMessage);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error.' });
     }
 };
 

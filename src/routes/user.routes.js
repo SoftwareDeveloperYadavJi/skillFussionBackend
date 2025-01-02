@@ -46,5 +46,8 @@ router.get("/api/user/skillexchange", isAuthenticated, userController.getSkillEx
 router.get("/api/users",isAuthenticated, userController.getAllUsers);
 router.post("/api/uses/createmeeting",isAuthenticated, userController.createMeeting);
 router.get("/api/user/meeting",isAuthenticated, userController.getMeetings);
+router.get("/api/user/id",isAuthenticated, userController.getUserId);
+router.post("/api/user/conversion/:userId/:otherUserId", isAuthenticated, userController.getConversionBetweenTwoUsers);
+router.post("/api/user/sendmessage", isAuthenticated, userController.sendNewMessage);
 
 export default router;

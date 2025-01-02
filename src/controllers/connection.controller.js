@@ -152,6 +152,7 @@ export const getAcceptedConnections = async (req, res) => {
             include: {
                 connection: {
                     select: {
+                        id: true,
                         name: true, // Fetch user's name
                         role: true, 
                         email: true, // Add other fields as needed
