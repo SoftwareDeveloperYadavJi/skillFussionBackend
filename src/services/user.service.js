@@ -28,7 +28,7 @@ export const handleGoogleAuth = async (user) => {
 
 
 
-export const createGoogleMeeting = async (user) => {
+export const createGoogleMeeting = async (user, email, subject, body) => {
     const { accessToken, refreshToken } = user;
 
     const oauth2Client = new google.auth.OAuth2(
@@ -42,8 +42,8 @@ export const createGoogleMeeting = async (user) => {
     const calendar = google.calendar({ version: "v3", auth: oauth2Client });
 
     const event = {
-        summary: "Scheduled Google Meet",
-        description: "This is a scheduled Google Meet.",
+        summary: subject,
+        description: body,
         start: {
             dateTime: new Date().toISOString(),
             timeZone: "America/Los_Angeles",
@@ -52,10 +52,9 @@ export const createGoogleMeeting = async (user) => {
             dateTime: new Date(new Date().getTime() + 30 * 60000).toISOString(),
             timeZone: "America/Los_Angeles",
         },
-        // attendees: attendeesEmails.map(email => ({ email })), // Add attendees
         attendees: [
-            { email: "gargpranjal343@gmail.com", optional: true },
-            { email: "panchalkalu634@gmail.com" , optional: true},
+            { email: email, optional: true },
+          
         ],
         conferenceData: {
             createRequest: {
@@ -71,6 +70,9 @@ export const createGoogleMeeting = async (user) => {
         conferenceDataVersion: 1,
     });
 
-    return response.data.htmlLink;
+    return {
+        hangoutLink: response.data.htmlLink,
+        meetingLink: response.data.hangoutLink,
+    };
 };
 

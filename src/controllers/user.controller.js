@@ -1,7 +1,10 @@
+import { secretmanager } from "googleapis/build/src/apis/secretmanager/index.js";
 import * as userService from "../services/user.service.js";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
+
+
 
 
 export const googleAuth = async (req, res) => {
@@ -26,10 +29,41 @@ export const checkLogin = async (req, res) => {
 
 export const createMeeting = async (req, res) => {
     try {
+        const { id } = req.user;
+        const { subject, body, email, skill } = req.body;
         // if (!req.isAuthenticated()) return res.redirect("/auth/google");
         console.log("User:", req.user);
-        const meetingLink = await userService.createGoogleMeeting(req.user);
-        res.send(`Google Meet created successfully. Join it [here](${meetingLink})`);
+        const user = await prisma.user.findUnique({
+            where: { id },
+        });
+        const otherUser = await prisma.user.findUnique({
+            where: { email },
+        });
+
+        if (!otherUser) {
+            return res.status(404).json({ error: `User with email ${email} not found.` });
+        }
+
+        if (!user) {
+            return res.status(404).json({ error: `User with id ${id} not found.` });
+        }
+        console.log("user", user); 
+        const meetingLink = await userService.createGoogleMeeting(user, email, subject, body);
+        console.log("meetingLink", meetingLink);
+        const meeting = await prisma.meeting.create({
+            data: {
+                userId: req.user.id,
+                googleCalendarId: meetingLink.hangoutLink,
+                secondUserId: otherUser.id,
+                body: body,
+                skill: skill,
+                meetingLink: meetingLink.meetingLink,
+                startTime: new Date(),
+                endTime: new Date(new Date().getTime() + 30 * 60000),
+            },
+        });
+
+        res.status(200).json({ "message": "Google Meet created successfully.", meeting });
     } catch (error) {
         console.error("Error creating meeting in Controller:", error);
         res.status(500).send("Error creating Google Meet.");
@@ -307,4 +341,33 @@ export const getAllUsers = async (req, res) => {
     }
 };
 
+// Get all meetings
+export const getMeetings = async (req, res) => {
+    try {
+        const { id } = req.user; // Extract user ID from the request
+        const meetings = await prisma.meeting.findMany({
+            where: {
+                OR: [
+                    { userId: id },
+                    { secondUserId: id },
+                ],
+            },
+            include: {
+                secondaryUser: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        avatar: true,
+                    },
+                }, // Adjust based on desired fields
+            },
+        });
+
+        res.status(200).json(meetings);
+    } catch (error) {
+        console.error('Error getting meetings:', error);
+        res.status(500).json({ error: 'An error occurred while fetching meetings.' });
+    }
+};
 

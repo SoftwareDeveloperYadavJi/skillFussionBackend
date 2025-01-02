@@ -31,9 +31,6 @@ router.get(
 
 
 
-
-
-
 // User Routers
 router.get("/api/check-login",isAuthenticated, userController.checkLogin);
 router.post("/api/complete-profile",isAuthenticated, userController.completeProfile);
@@ -47,5 +44,7 @@ router.post("/api/update/skillexchange", isAuthenticated ,userController.updateS
 router.get("/api/user/skillexchange", isAuthenticated, userController.getSkillExchanges);
 // router.get("/api/user/potentialmatches", userController.getPotentialMatches);
 router.get("/api/users",isAuthenticated, userController.getAllUsers);
+router.post("/api/uses/createmeeting",isAuthenticated, userController.createMeeting);
+router.get("/api/user/meeting",isAuthenticated, userController.getMeetings);
 
 export default router;

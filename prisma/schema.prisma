@@ -9,7 +9,7 @@ datasource db {
 
 model User {
   id                 String          @id @default(cuid())
-  googleId           String          @unique
+  googleId           String?         @unique
   email              String          @unique
   name               String
   avatar             String
@@ -29,7 +29,7 @@ model User {
   preferredLanguage  String?
   refreshToken       String?         
   accessToken        String?
-  role               String?       @default("Backend Developer")
+  role               String?         @default("Backend Developer")
 
   // Relationships
   sessions           Session[]       @relation("UserSessions")
@@ -37,7 +37,8 @@ model User {
   education          Education[]     @relation("UserEducation")
   socialMedia        SocialMedia[]   @relation("UserSocialMedia")
   skillExchanges     SkillExchange[] @relation("UserSkillExchange")
-  meetings           Meeting[]       @relation("UserMeetings")
+  meetingsAsPrimary  Meeting[]       @relation("PrimaryUserMeetings")
+  meetingsAsSecondary Meeting[]      @relation("SecondaryUserMeetings")
   
   // Connection relationships
   connections        UserConnection[] @relation("UserToConnection")
@@ -77,9 +78,10 @@ model Message {
   receiver           User            @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
   conversation       Conversation    @relation("ConversationMessages", fields: [conversationId], references: [id], onDelete: Cascade)
 }
+
 model SocialMedia {
   id                 String          @id @default(cuid())
-  userId             String          @unique
+  userId             String
   github             String?
   linkedin           String?
   twitter            String?
@@ -132,7 +134,7 @@ model Session {
 
 model SkillExchange {
   id                 String          @id @default(cuid())
-  userId             String          @unique
+  userId             String
   offeredSkill       String
   requestedSkill     String
   createdAt          DateTime        @default(now())
@@ -142,12 +144,12 @@ model SkillExchange {
   user               User            @relation("UserSkillExchange", fields: [userId], references: [id], onDelete: Cascade)
 }
 
-
-
-
 model Meeting {
   id                 String          @id @default(cuid())
   userId             String
+  body               String?
+  skill              String?
+  secondUserId       String
   googleCalendarId   String
   meetingLink        String
   startTime          DateTime
@@ -156,7 +158,8 @@ model Meeting {
   updatedAt          DateTime        @updatedAt
 
   // Relationships
-  user               User            @relation("UserMeetings", fields: [userId], references: [id], onDelete: Cascade)
+  primaryUser        User            @relation("PrimaryUserMeetings", fields: [userId], references: [id], onDelete: Cascade)
+  secondaryUser      User            @relation("SecondaryUserMeetings", fields: [secondUserId], references: [id], onDelete: Cascade)
 }
 
 model UserConnection {
@@ -166,9 +169,9 @@ model UserConnection {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  // Fixed relationships with distinct names
-  user        User     @relation("UserToConnection", fields: [userId], references: [id], onDelete: Cascade)
-  connection  User     @relation("ConnectionToUser", fields: [connectionId], references: [id], onDelete: Cascade)
+  // Relationships
+  user         User     @relation("UserToConnection", fields: [userId], references: [id], onDelete: Cascade)
+  connection   User     @relation("ConnectionToUser", fields: [connectionId], references: [id], onDelete: Cascade)
 }
 
 model UserConnectionRequest {
@@ -179,8 +182,7 @@ model UserConnectionRequest {
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
 
-  // Fixed relationships with distinct names
+  // Relationships
   sender             User            @relation("SentConnectionRequests", fields: [userId], references: [id], onDelete: Cascade)
   receiver           User            @relation("ReceivedConnectionRequests", fields: [requestedUserId], references: [id], onDelete: Cascade)
 }
-

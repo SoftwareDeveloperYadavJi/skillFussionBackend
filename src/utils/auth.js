@@ -40,7 +40,7 @@ passport.use(
                 const token = jwt.sign(
                     { id: user.id, email: user.email }, // Payload
                     process.env.JWT_SECRET, // Secret key
-                    { expiresIn: "1h" } // Token expiration
+                    { expiresIn: "6h" } // Token expiration
                 );
 
                 // Pass the token and user data
