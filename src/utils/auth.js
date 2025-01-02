@@ -30,6 +30,9 @@ passport.use(
                         },
                     });
                    
+                    // send email for only first time user 
+                    const email = sendEmail(user.email, "Welcome to LearnSwap", "Welcome to LearnSwap", user.name, process.env.PLATFORM_URL, process.env.UNSUBSCRIBE_URL);
+                    console.log(email);
 
                 }
 
@@ -40,9 +43,7 @@ passport.use(
                     { expiresIn: "1h" } // Token expiration
                 );  
 
-                // send email for only first time user 
-                const email = sendEmail(user.email, "Welcome to LearnSwap", "Welcome to LearnSwap", user.name, process.env.PLATFORM_URL, process.env.UNSUBSCRIBE_URL);
-                console.log(email);
+                
 
                 
 
