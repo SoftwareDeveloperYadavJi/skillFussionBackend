@@ -29,6 +29,7 @@ model User {
   preferredLanguage  String?
   refreshToken       String?         
   accessToken        String?
+  role               String?       @default("Backend Developer")
 
   // Relationships
   sessions           Session[]       @relation("UserSessions")

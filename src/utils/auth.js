@@ -41,11 +41,7 @@ passport.use(
                     { id: user.id, email: user.email }, // Payload
                     process.env.JWT_SECRET, // Secret key
                     { expiresIn: "1h" } // Token expiration
-                );  
-
-                
-
-                
+                );
 
                 // Pass the token and user data
                 return done(null, { user, token });

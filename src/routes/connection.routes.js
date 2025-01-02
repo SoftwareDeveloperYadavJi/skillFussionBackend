@@ -7,9 +7,9 @@ const router = express.Router();
 
 // Connection Routers
 router.post("/request", connectionController.sendConnetionRequest);
-router.post("/accept",  connectionController.acceptConnectionRequest);
+router.post("/accept",isAuthenticated, connectionController.acceptConnectionRequest);
 router.post("/reject", connectionController.rejectConnectionRequest);
-router.get("/connected", connectionController.getAcceptedConnections);
-router.get("/requests", connectionController.getConnectionRequests);
+router.get("/connected",isAuthenticated, connectionController.getAcceptedConnections);
+router.get("/requests" ,isAuthenticated, connectionController.getConnectionRequests);
 
 export default router;

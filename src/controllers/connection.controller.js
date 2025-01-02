@@ -73,21 +73,42 @@ export const acceptConnectionRequest = async (req, res) =>{
 
 // get all users to show in the list in user slect only name,email, avatar
 export const getConnectionRequests = async (req, res) => {
-    const { userId } = req.body;
+    const { id } = req.user;
+
+    if (!id) {
+        return res.status(400).json({ error: "User ID is required" });
+    }
+
     try {
+        // Fetching the connection requests and including user details from the 'requestedUserId'
         const connectionRequests = await prisma.userConnectionRequest.findMany({
             where: {
-                // userId: req.user.id, this for middleware working stage
-                userId,
+                userId : id,
                 status: "pending",
             },
+            include: {
+                
+                receiver: { // Include the receiver (requestedUserId)
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        role: true,
+                        city: true,
+                    },
+                },
+            },
         });
+
+        // Returning the connection requests with the receiver's user details
         res.status(200).json(connectionRequests);
     } catch (error) {
         console.error("Error getting connection requests:", error);
         res.status(500).json({ error: "An error occurred while getting connection requests" });
     }
 };
+
+
 
 
 // reject connection request
@@ -122,13 +143,23 @@ export const rejectConnectionRequest = async (req, res) => {
 
 // get all the connection that are accepted
 export const getAcceptedConnections = async (req, res) => {
-    const { userId } = req.body;
+    const { id } = req.user;
     try {
         const acceptedConnections = await prisma.userConnection.findMany({
             where: {
-                userId: userId,
+                userId: id,
+            },
+            include: {
+                connection: {
+                    select: {
+                        name: true, // Fetch user's name
+                        role: true, 
+                        email: true, // Add other fields as needed
+                    },
+                },
             },
         });
+
         res.status(200).json(acceptedConnections);
     } catch (error) {
         console.error("Error getting accepted connections:", error);
