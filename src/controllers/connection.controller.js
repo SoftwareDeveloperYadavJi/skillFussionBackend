@@ -133,9 +133,8 @@ export const getConnectionRequests = async (req, res) => {
                 userId: id,
                 status: "pending",
             },
-            distinct: ['connectionId'],  // Ensure unique 'requestedUserId'
             include: {
-                receiver: { // Include the receiver (requestedUserId)
+                receiver: {
                     select: {
                         id: true,
                         name: true,
@@ -146,6 +145,7 @@ export const getConnectionRequests = async (req, res) => {
                 },
             },
         });
+
 
         // Returning the connection requests with the receiver's user details
         res.status(200).json(connectionRequests);
@@ -209,18 +209,18 @@ export const getAcceptedConnections = async (req, res) => {
             where: {
                 userId: id,
             },
-            distinct: ['connectionId'],  // Ensure unique 'connectionId'
             include: {
                 connection: {
                     select: {
                         id: true,
-                        name: true, // Fetch user's name
-                        role: true, 
-                        email: true, // Add other fields as needed
+                        name: true,
+                        role: true,
+                        email: true,
                     },
                 },
             },
         });
+
 
         res.status(200).json(acceptedConnections);
     } catch (error) {
