@@ -1,25 +1,31 @@
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
-export const createReview = async (req, res) => {
-    const userId = "cm53ojiix0000ffmszuq27s93";
-    
-    let {  reviewDescription, rating } = req.body;
-    rating = parseInt(rating);
+export const createReview = async (req, res) => { // Create a review for a user
     try {
+        const { userId, reviewDescription, rating } = req.body;
+
+        // Validate input
+        if (!userId || !reviewDescription || !rating) {
+            return res.status(400).json({ error: "Missing required fields" });
+        }
+
+        // Create review in the database
         const review = await prisma.review.create({
             data: {
-                userId,
-                rating,
+                userId, // Ensure this is a string
                 reviewDescription,
+                rating: parseInt(rating, 10), // Convert rating to an integer if necessary
             },
         });
-        res.status(201).json({ message: "Review created successfully.", review });
+
+        return res.status(201).json({ message: "Review created successfully", review });
     } catch (error) {
         console.error("Error creating review:", error);
-        res.status(500).json({ error: "An error occurred while creating the review." });
+        return res.status(500).json({ error: "Failed to create review" });
     }
 };
+
 
 // get all reviews
 export const getReviews = async (req, res) => {
